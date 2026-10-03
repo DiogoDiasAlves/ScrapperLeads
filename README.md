@@ -12,7 +12,7 @@ Roda **na sua máquina**, com Docker. É baseada no
 ## Antes de começar
 
 - **Docker Desktop** instalado e aberto (espere ficar verde): https://www.docker.com/products/docker-desktop
-- **Python 3** (no Mac já vem; no Windows: https://www.python.org/downloads/, use `py` no lugar de `python3`)
+- **Python 3**, só se for usar pelo terminal (a página web não precisa)
 - **Terminal**: no Mac é o Terminal, no Windows é o PowerShell.
 
 ## Passo a passo
@@ -23,11 +23,11 @@ git clone https://github.com/DiogoDiasAlves/ScrapperLeads.git
 cd ScrapperLeads
 ```
 
-### 2. Suba o scraper
+### 2. Suba o scraper e a página
 ```bash
 docker compose up -d
 ```
-Na primeira vez ele baixa a imagem (algumas centenas de MB).
+Na primeira vez ele baixa as imagens (algumas centenas de MB).
 
 > **Mac M1/M2/M3:** se o container não subir, descomente a linha `platform: linux/amd64` no
 > `docker-compose.yml` e rode de novo.
@@ -41,7 +41,16 @@ Se der erro de porta ocupada, é outro programa usando a 8080.
 
 Também dá para abrir http://localhost:8080 no navegador.
 
-### 4. Rode a primeira busca
+### 4. Abra a página e busque
+Abra **http://localhost:3000** no navegador. Preencha o que você procura (ex.: `dentistas`) e a
+cidade (ex.: `São Paulo, SP`), escolha a profundidade e clique em **Buscar leads**. Quando ficar
+**pronto**, clique em **Baixar planilha**. As planilhas também ficam na pasta `leads/`.
+
+Quanto tempo leva (profundidade 1): menos de 1 minuto sem e-mail; uns 3 minutos com e-mail e redes
+sociais. Profundidade 5 leva bem mais. Para testar rápido, use profundidade 1 e desmarque e-mail.
+
+### Ou pelo terminal
+Precisa de Python 3 instalado.
 ```bash
 python3 scripts/scrape.py "dentistas em São Paulo SP" --city "São Paulo, SP" --depth 5
 ```
@@ -108,7 +117,7 @@ O Claude lê este README e roda o `scripts/scrape.py` com as opções certas.
 
 | sintoma | o que fazer |
 |---|---|
-| `Scraper fora do ar` | rode `docker compose up -d` e espere uns 10 segundos |
+| `Scraper fora do ar` / "scraper desligado" na página | rode `docker compose up -d` e espere uns 10 segundos |
 | porta 8080 ocupada | feche o outro programa ou troque a porta no `docker-compose.yml` e no `.env` |
 | `Não achei as coordenadas` | escreva a cidade como `"Cidade, UF"` ou passe lat/lon direto |
 | job fica `working` muito tempo | baixe a profundidade, aumente `--max-time`, ou o IP pode estar limitado |

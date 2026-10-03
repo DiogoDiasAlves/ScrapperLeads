@@ -105,6 +105,23 @@ def dedupe(rows):
     return out
 
 
+def clean_leads(rows, fields=None):
+    """Linhas brutas do scraper -> (leads só com os campos úteis, nº de duplicados removidos)."""
+    unique = dedupe(rows)
+    for r in unique:
+        r["whatsapp"] = whatsapp_link(r.get("phone", ""))
+    fields = fields or LEAD
+    return [{k: r.get(k, "") for k in fields} for r in unique], len(rows) - len(unique)
+
+
+def save_csv(path, results, fields, sep=";"):
+    # utf-8-sig (BOM) para o Excel reconhecer os acentos.
+    with open(path, "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f, delimiter=sep)
+        w.writerow([HEADERS_PT.get(k, k) for k in fields])
+        w.writerows([[r.get(k, "") for k in fields] for r in results])
+
+
 def slug(text):
     t = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
     return re.sub(r"[^a-z0-9]+", "-", t.lower()).strip("-")[:50] or "busca"
@@ -152,7 +169,7 @@ def _find_socials(html):
     return out
 
 
-def enrich_socials(results, workers=8):
+def enrich_socials(results, workers=8, progress=None):
     for r in results:
         for p in SOCIALS:
             r.setdefault(p, "")
@@ -164,8 +181,12 @@ def enrich_socials(results, workers=8):
     with ThreadPoolExecutor(max_workers=workers) as ex:
         for _ in ex.map(work, todo):
             done += 1
-            print(f"\r  redes sociais: {done}/{len(todo)} sites verificados", end="", flush=True)
-    print()
+            if progress:
+                progress(done, len(todo))
+            else:
+                print(f"\r  redes sociais: {done}/{len(todo)} sites verificados", end="", flush=True)
+    if not progress:
+        print()
 
 
 def main():
@@ -260,19 +281,13 @@ def main():
 
     _, raw = req("GET", f"/api/v1/jobs/{job_id}/download")
     rows = list(csv.DictReader(io.StringIO(raw.decode("utf-8", "replace"))))
-    total = len(rows)
-    rows = dedupe(rows)
-    for r in rows:
-        r["whatsapp"] = whatsapp_link(r.get("phone", ""))
-
     if a.full:
-        fields = list(rows[0].keys()) if rows else LEAD
+        fields = (list(rows[0].keys()) + ["whatsapp"]) if rows else list(LEAD)
     elif a.fields:
         fields = [c.strip() for c in a.fields.split(",") if c.strip()]
     else:
         fields = list(LEAD)
-    results = [{k: r.get(k, "") for k in fields} for r in rows]
-    dupes = total - len(results)
+    results, dupes = clean_leads(rows, fields)
     print(f"✓ Pronto: {len(results)} negócios" + (f" ({dupes} duplicados removidos)" if dupes else "") + ".")
 
     if a.socials:
@@ -292,11 +307,7 @@ def main():
         with open(out, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
     else:
-        # utf-8-sig (BOM) para o Excel reconhecer os acentos.
-        with open(out, "w", newline="", encoding="utf-8-sig") as f:
-            w = csv.writer(f, delimiter=a.sep)
-            w.writerow([HEADERS_PT.get(k, k) for k in fields])
-            w.writerows([[r.get(k, "") for k in fields] for r in results])
+        save_csv(out, results, fields, a.sep)
     print(f"  salvo em → {out}")
     for r in results[:5]:
         print(f"  • {r.get('title', '')} | {r.get('phone', '')} | {r.get('emails', '') or '—'} | "

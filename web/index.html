@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScrapperLeads</title>
+<style>
+  :root {
+    --bg: #f6f5fb; --card: #fff; --text: #1d1b26; --muted: #6b6880; --line: #e6e3f0;
+    --brand: #6d4ae8; --brand-2: #8b6cf2; --brand-soft: #efeaff;
+    --ok: #138a4c; --ok-soft: #e3f6ec; --warn: #9a6400; --warn-soft: #fff3d6;
+    --err: #b42318; --err-soft: #fde8e6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #13121a; --card: #1c1a25; --text: #ece9f5; --muted: #a29eb8; --line: #2e2b3b;
+      --brand: #8b6cf2; --brand-2: #a28af5; --brand-soft: #2a2340;
+      --ok: #4ccf8a; --ok-soft: #173326; --warn: #f0b84a; --warn-soft: #382c12;
+      --err: #ff7b6e; --err-soft: #3d1c1a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+  h1 span { color: var(--brand); }
+  h2 { font-size: 17px; margin: 0 0 14px; }
+  .pill { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--line); color: var(--muted); white-space: nowrap; }
+  .pill.on { background: var(--ok-soft); color: var(--ok); }
+  .pill.off { background: var(--err-soft); color: var(--err); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .hint { font-weight: 400; color: var(--muted); }
+  input[type=text], select { width: 100%; padding: 12px 14px; font: inherit; color: var(--text);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px; }
+  input[type=text]:focus, select:focus { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .field { margin-bottom: 14px; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin: 0 0 10px; cursor: pointer; }
+  .check input { margin-top: 4px; accent-color: var(--brand); width: 18px; height: 18px; flex: none; }
+  .check small { display: block; color: var(--muted); font-size: 13px; }
+  button, .btn { font: inherit; font-weight: 600; border: 0; border-radius: 12px; cursor: pointer;
+    padding: 12px 18px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .primary { width: 100%; margin-top: 6px; color: #fff; background: linear-gradient(135deg, var(--brand-2), var(--brand)); }
+  .primary:disabled { opacity: .55; cursor: not-allowed; }
+  .secondary { background: var(--brand-soft); color: var(--brand); padding: 9px 14px; font-size: 14px; }
+  .ghost { background: none; color: var(--muted); padding: 9px 10px; font-size: 14px; }
+  .ghost:hover { color: var(--err); }
+  .msg { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 14px; display: none; }
+  .msg.err { display: block; background: var(--err-soft); color: var(--err); }
+  .item { border-top: 1px solid var(--line); padding: 14px 0; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .item:first-of-type { border-top: 0; padding-top: 0; }
+  .item .info { min-width: 0; flex: 1 1 260px; }
+  .item .termo { font-weight: 600; overflow-wrap: anywhere; }
+  .item .det { color: var(--muted); font-size: 14px; }
+  .item .det.err { color: var(--err); }
+  .acts { display: flex; gap: 4px; align-items: center; }
+  .badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 2px; }
+  .b-run { background: var(--warn-soft); color: var(--warn); }
+  .b-ok { background: var(--ok-soft); color: var(--ok); }
+  .b-err { background: var(--err-soft); color: var(--err); }
+  .empty { color: var(--muted); font-size: 15px; margin: 0; }
+  .spin { display: inline-block; width: 10px; height: 10px; border: 2px solid currentColor; border-right-color: transparent;
+          border-radius: 50%; animation: s 0.8s linear infinite; margin-right: 4px; vertical-align: -1px; }
+  @keyframes s { to { transform: rotate(360deg); } }
+  footer { color: var(--muted); font-size: 13px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Scrapper<span>Leads</span></h1>
+    <span id="status" class="pill">verificando…</span>
+  </header>
+
+  <section class="card">
+    <h2>Nova busca</h2>
+    <form id="form">
+      <div class="row">
+        <div>
+          <label for="nicho">O que você procura</label>
+          <input id="nicho" type="text" placeholder="dentistas" required maxlength="100" autocomplete="off">
+        </div>
+        <div>
+          <label for="cidade">Cidade <span class="hint">(Cidade, UF)</span></label>
+          <input id="cidade" type="text" placeholder="São Paulo, SP" required maxlength="100" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label for="depth">Profundidade <span class="hint">(quanto mais, mais leads e mais demora)</span></label>
+        <select id="depth">
+          <option value="1">1 · teste rápido (~20 leads)</option>
+          <option value="5" selected>5 · recomendado</option>
+          <option value="10">10 · mais leads</option>
+          <option value="20">20 · máximo (risco de bloqueio)</option>
+        </select>
+      </div>
+      <label class="check"><input id="email" type="checkbox" checked>
+        <span>Procurar e-mail<small>Visita o site de cada negócio. Mais lento.</small></span></label>
+      <label class="check"><input id="socials" type="checkbox">
+        <span>Procurar Instagram, Facebook e LinkedIn<small>Também pelo site de cada negócio.</small></span></label>
+      <button id="go" class="primary" type="submit">Buscar leads</button>
+      <p id="msg" class="msg"></p>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Buscas</h2>
+    <div id="list"><p class="empty">Carregando…</p></div>
+  </section>
+
+  <footer>
+    Uma busca por vez: rodar muita coisa junto faz o Google limitar o IP por algumas horas.
+    Telefone e e-mail de empresa são para contato, não para revender lista. Respeite a LGPD e
+    o descadastro de quem pedir.
+  </footer>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const RUNNING = ["na fila", "localizando", "buscando", "redes sociais"];
+let busy = false;
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.erro || `Erro ${r.status}`);
+  return data;
+}
+
+function since(iso) {
+  const s = Math.max(0, Math.round((Date.now() - new Date(iso)) / 1000));
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}min`;
+}
+
+function render(items) {
+  busy = items.some((b) => RUNNING.includes(b.status));
+  $("go").disabled = busy;
+  $("go").textContent = busy ? "Aguarde a busca atual terminar" : "Buscar leads";
+  if (!items.length) { $("list").innerHTML = '<p class="empty">Nenhuma busca ainda. Faça a primeira aí em cima.</p>'; return; }
+  $("list").innerHTML = items.map((b) => {
+    let badge, det;
+    if (RUNNING.includes(b.status)) {
+      badge = `<span class="badge b-run"><span class="spin"></span>${esc(b.status)}${b.progresso ? " " + esc(b.progresso) : ""}</span>`;
+      det = `<div class="det">Rodando há ${since(b.criada)} · profundidade ${b.depth}${b.email ? " · com e-mail" : ""}${b.socials ? " · com redes" : ""}</div>`;
+    } else if (b.status === "pronto") {
+      badge = `<span class="badge b-ok">pronto</span>`;
+      det = `<div class="det">${b.total} leads · ${b.com_whatsapp} com WhatsApp · ${b.com_email} com e-mail${b.duplicados ? ` · ${b.duplicados} duplicados removidos` : ""}</div>`;
+    } else {
+      badge = `<span class="badge b-err">falhou</span>`;
+      det = `<div class="det err">${esc(b.erro)}</div>`;
+    }
+    const dl = b.status === "pronto" ? `<a class="btn secondary" href="/api/buscas/${esc(b.id)}/csv">Baixar planilha</a>` : "";
+    const del = RUNNING.includes(b.status) ? "" : `<button class="ghost" data-del="${esc(b.id)}" title="Apagar">Apagar</button>`;
+    return `<div class="item"><div class="info"><div class="termo">${esc(b.termo)}${badge}</div>${det}</div><div class="acts">${dl}${del}</div></div>`;
+  }).join("");
+}
+
+async function refresh() {
+  try { render(await api("/api/buscas")); } catch (e) { /* tenta de novo no próximo ciclo */ }
+  try {
+    const s = await api("/api/status");
+    $("status").className = "pill " + (s.scraper ? "on" : "off");
+    $("status").textContent = s.scraper ? "scraper ligado" : "scraper desligado";
+  } catch (e) { $("status").className = "pill off"; $("status").textContent = "sem conexão"; }
+}
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  $("msg").className = "msg";
+  $("go").disabled = true;
+  try {
+    await api("/api/buscas", { method: "POST", body: JSON.stringify({
+      nicho: $("nicho").value, cidade: $("cidade").value, depth: +$("depth").value,
+      email: $("email").checked, socials: $("socials").checked }) });
+    $("nicho").value = "";
+  } catch (e) { $("msg").textContent = e.message; $("msg").className = "msg err"; }
+  refresh();
+});
+
+$("list").addEventListener("click", async (ev) => {
+  const id = ev.target.dataset.del;
+  if (!id || !confirm("Apagar esta busca e a planilha?")) return;
+  try { await api(`/api/buscas/${id}`, { method: "DELETE" }); } catch (e) { alert(e.message); }
+  refresh();
+});
+
+refresh();
+setInterval(refresh, 4000);
+</script>
+</body>
+</html>
