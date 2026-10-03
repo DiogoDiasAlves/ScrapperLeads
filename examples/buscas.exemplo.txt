@@ -1,0 +1,6 @@
+# Uma busca por linha. Linhas começando com # são ignoradas.
+# Coloque a cidade em cada linha OU passe --city para usar a mesma cidade em todas.
+# Rodar:  python3 scripts/scrape.py --keywords-file examples/buscas.exemplo.txt --city "Curitiba, PR"
+escritório de advocacia em Curitiba PR
+advogado trabalhista em Curitiba PR
+advogado previdenciário em Curitiba PR

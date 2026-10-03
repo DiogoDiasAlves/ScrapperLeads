@@ -1,0 +1,15 @@
+# Segredos
+.env
+
+# Resultados das buscas (têm dados pessoais — nunca commitar)
+leads/
+*.csv
+results-*.json
+
+# Python
+__pycache__/
+*.pyc
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
